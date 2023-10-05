@@ -54,4 +54,16 @@ talkerRouter.put('/talker/:id',
     return res.status(200).json(newTalker);
   });
 
+talkerRouter.delete('/talker/:id', validadeAuth, async (req, res) => {
+  const { id } = req.params;
+  const data = await readAndWrite.readFile();
+  const index = data.findIndex((talker) => talker.id === parseInt(id, 10));
+  if (index === -1) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  data.splice(index, 1);
+  await readAndWrite.writeFile(data);
+  return res.status(204).end();
+});
+
 module.exports = talkerRouter;
