@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const readAndWrite = require('../utils/readAndWrite');
+const validadeAuth = require('../middlewares/validateAuth');
+const validateNAT = require('../middlewares/validateNAT');
 
 const talkerRouter = Router();
 
@@ -20,5 +22,18 @@ talkerRouter.get('/talker/:id', async (req, res) => {
   }
   return res.status(HTTP_OK_STATUS).json(result);
 });
+
+talkerRouter.post('/talker',
+  validadeAuth, validateNAT.validateName, validateNAT.validateWatchedAt,
+  validateNAT.validateAge, validateNAT.validateRate,
+  async (req, res) => {
+    const { name, age, talk } = req.body;
+    const data = await readAndWrite.readFile();
+    const id = data.length + 1;
+    const newTalker = { id, name, age, talk };
+    data.push(newTalker);
+    await readAndWrite.writeFile(data);
+    return res.status(201).json(newTalker);
+  });
 
 module.exports = talkerRouter;
