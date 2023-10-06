@@ -2,7 +2,8 @@ const { Router } = require('express');
 const readAndWrite = require('../utils/readAndWrite');
 const validadeAuth = require('../middlewares/validateAuth');
 const validateNAT = require('../middlewares/validateNAT');
-const validateRate = require('../middlewares/validateSearchRate');
+const validateSearch = require('../middlewares/validateSearch');
+const searchRouteUtils = require('../utils/searchRouteUtils');
 
 const talkerRouter = Router();
 
@@ -15,18 +16,19 @@ talkerRouter.get('/talker', async (req, res) => {
 });
 
 talkerRouter.get('/talker/search/',
-  validadeAuth, validateRate,
+  validadeAuth, validateSearch.validateRate, validateSearch.validateDate,
   async (req, res) => {
-    const { q, rate } = req.query;
-    const lowerQ = q ? q.toLowerCase() : '';
+    const { q, rate, date } = req.query;
     const data = await readAndWrite.readFile();
     let result = data;
     if (q) {
-      result = result.filter((talker) => talker.name.toLowerCase().includes(lowerQ));
+      result = searchRouteUtils.filterByName(result, q);
     }
     if (rate) {
-      const numberfy = Number(rate);
-      result = result.filter((talker) => talker.talk.rate === numberfy);
+      result = searchRouteUtils.filterByRate(result, rate);
+    }
+    if (date) {
+      result = searchRouteUtils.filterByDate(result, date);
     }
     if (result.length === 0) {
       return res.status(200).json([]);
