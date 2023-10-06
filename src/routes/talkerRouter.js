@@ -13,6 +13,20 @@ talkerRouter.get('/talker', async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(result);
 });
 
+talkerRouter.get('/talker/search/', validadeAuth, async (req, res) => {
+  const { q } = req.query;
+  const lowerQ = q ? q.toLowerCase() : '';
+  const data = await readAndWrite.readFile();
+  if (!q) {
+    return res.status(200).json(data);
+  }
+  const result = data.filter((talker) => talker.name.toLowerCase().includes(lowerQ));
+  if (result.length === 0) {
+    return res.status(200).json([]);
+  }
+  return res.status(200).json(result);
+});
+
 talkerRouter.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const data = await readAndWrite.readFile();
