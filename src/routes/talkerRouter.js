@@ -4,6 +4,7 @@ const validadeAuth = require('../middlewares/validateAuth');
 const validateNAT = require('../middlewares/validateNAT');
 const validateSearch = require('../middlewares/validateSearch');
 const searchRouteUtils = require('../utils/searchRouteUtils');
+const findAll = require('../db/talkerDB');
 
 const talkerRouter = Router();
 
@@ -13,6 +14,24 @@ talkerRouter.get('/talker', async (req, res) => {
   const data = await readAndWrite.readFile();
   const result = data.length > 0 ? data : [];
   return res.status(HTTP_OK_STATUS).json(result);
+});
+
+talkerRouter.get('/talker/db/', async (req, res) => {
+  try {
+    const [result] = await findAll();
+    const talkers = result.map((row) => ({
+      id: row.id,
+      name: row.name,
+      age: row.age,
+      talk: {
+        watchedAt: row.watched_at,
+        rate: row.rate,
+      },
+    }));
+    return res.status(HTTP_OK_STATUS).json(talkers);
+  } catch (err) {
+    return res.status(500).json({ message: 'Erro interno do servidor' });
+  }
 });
 
 talkerRouter.get('/talker/search/',
@@ -89,7 +108,7 @@ talkerRouter.delete('/talker/:id', validadeAuth, async (req, res) => {
   return res.status(204).end();
 });
 
-talkerRouter.patch('/talker/rate/:id', 
+talkerRouter.patch('/talker/rate/:id',
   validadeAuth, validateNAT.validatePatchRate,
   async (req, res) => {
     const { id } = req.params;
