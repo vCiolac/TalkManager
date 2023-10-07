@@ -33,7 +33,7 @@ talkerRouter.get('/talker/search/',
     if (result.length === 0) {
       return res.status(200).json([]);
     }
-    return res.status(200).json(result);
+    return res.status(HTTP_OK_STATUS).json(result);
   });
 
 talkerRouter.get('/talker/:id', async (req, res) => {
@@ -74,7 +74,7 @@ talkerRouter.put('/talker/:id',
     const newTalker = { id: intId, name, age, talk };
     data[index] = newTalker;
     await readAndWrite.writeFile(data);
-    return res.status(200).json(newTalker);
+    return res.status(HTTP_OK_STATUS).json(newTalker);
   });
 
 talkerRouter.delete('/talker/:id', validadeAuth, async (req, res) => {
@@ -88,5 +88,20 @@ talkerRouter.delete('/talker/:id', validadeAuth, async (req, res) => {
   await readAndWrite.writeFile(data);
   return res.status(204).end();
 });
+
+talkerRouter.patch('/talker/rate/:id', 
+  validadeAuth, validateNAT.validatePatchRate,
+  async (req, res) => {
+    const { id } = req.params;
+    const { rate } = req.body;
+    const data = await readAndWrite.readFile();
+    const index = data.findIndex((talker) => talker.id === parseInt(id, 10));
+    if (index === -1) {
+      return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+    }
+    data[index].talk.rate = rate;
+    await readAndWrite.writeFile(data);
+    return res.status(204).json(data[index]);
+  });
 
 module.exports = talkerRouter;
